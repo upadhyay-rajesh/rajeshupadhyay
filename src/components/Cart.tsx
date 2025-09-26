@@ -38,37 +38,26 @@ const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) 
 };
 
 
-  const handleCheckout = async () => {
-  const res = await loadRazorpayScript("https://checkout.razorpay.com/v1/checkout.js");
-  if (!res) {
-    alert("Failed to load Razorpay SDK. Please check your internet connection.");
-    return;
-  }
-
-  // 💡 In real app: create order on your backend and get order_id from Razorpay
+ const handleCheckout = () => {
   const options: any = {
-    key: "rzp_test_1234567890abcdef", // ✅ replace with your Razorpay Key ID
-    amount: totalAmount * 100, // Razorpay takes amount in paise
+    key: "rzp_test_1234567890abcdef", // ✅ Only Key ID, safe to expose
+    amount: 50000, // paise (₹500)
     currency: "INR",
     name: "Dhruv Bhaiya Coaching Center",
     description: "Course Payment",
-    image: "/logo.png", // optional logo
     handler: function (response: any) {
-      alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
-      onCheckout(); // Call your existing checkout logic
+      alert("Payment ID: " + response.razorpay_payment_id);
     },
     prefill: {
       name: "Student Name",
       email: "student@example.com",
       contact: "9876543210",
     },
-    theme: {
-      color: "#3399cc",
-    },
+    theme: { color: "#3399cc" },
   };
 
-  const paymentObject = new (window as any).Razorpay(options);
-  paymentObject.open();
+  const rzp1 = new (window as any).Razorpay(options);
+  rzp1.open();
 };
 
 
