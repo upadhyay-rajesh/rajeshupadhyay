@@ -27,6 +27,51 @@ const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) 
   const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  const loadRazorpayScript = (src: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
+
+  const handleCheckout = async () => {
+  const res = await loadRazorpayScript("https://checkout.razorpay.com/v1/checkout.js");
+  if (!res) {
+    alert("Failed to load Razorpay SDK. Please check your internet connection.");
+    return;
+  }
+
+  // 💡 In real app: create order on your backend and get order_id from Razorpay
+  const options: any = {
+    key: "rzp_test_1234567890abcdef", // ✅ replace with your Razorpay Key ID
+    amount: totalAmount * 100, // Razorpay takes amount in paise
+    currency: "INR",
+    name: "Dhruv Bhaiya Coaching Center",
+    description: "Course Payment",
+    image: "/logo.png", // optional logo
+    handler: function (response: any) {
+      alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
+      onCheckout(); // Call your existing checkout logic
+    },
+    prefill: {
+      name: "Student Name",
+      email: "student@example.com",
+      contact: "9876543210",
+    },
+    theme: {
+      color: "#3399cc",
+    },
+  };
+
+  const paymentObject = new (window as any).Razorpay(options);
+  paymentObject.open();
+};
+
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
@@ -128,7 +173,7 @@ const Cart = ({ items, onUpdateQuantity, onRemoveItem, onCheckout }: CartProps) 
                 </div>
                 
                 <Button 
-                  onClick={onCheckout}
+                   onClick={handleCheckout}
                   className="w-full bg-gradient-primary hover:bg-gradient-hero text-primary-foreground shadow-elegant hover:shadow-glow transition-all duration-300"
                   size="lg"
                 >
